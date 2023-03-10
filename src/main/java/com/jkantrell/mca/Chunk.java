@@ -13,10 +13,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import static com.jkantrell.mca.LoadFlags.*;
 
@@ -469,6 +466,11 @@ public class Chunk implements Iterable<Section> {
 	public void setToBeTicked(ListTag<ListTag<?>> toBeTicked) {
 		checkRaw();
 		this.toBeTicked = toBeTicked;
+	}
+
+
+	public List<Section> getSections() {
+		return this.sections.values().stream().sorted().toList();
 	}
 
 	/**
