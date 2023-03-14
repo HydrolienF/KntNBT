@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
+import java.util.List;
 
 public class MCAFileTest extends MCATestCase {
 
@@ -130,6 +131,23 @@ public class MCAFileTest extends MCATestCase {
 				c.deserialize(raf);
 			}
 		}, IOException.class);
+	}
+
+	public void testLocationsOf() {
+		MCAFile f = assertThrowsNoException(() -> MCAUtil.read(copyResourceToTmp("r.0.0.mca")));
+		Chunk chunk = f.getChunk(0,4);
+		List<LocatedTag<CompoundTag>> list = chunk.locationsOf("minecraft:birch_log");
+		assertEquals(19,list.size());
+		chunk = f.getChunk(0,31);
+		list = chunk.locationsOf("jack_o_lantern");
+		assertEquals(1,list.size());
+		assertEquals(14 ,list.get(0).x());
+		assertEquals(65 ,list.get(0).y());
+		assertEquals(1 ,list.get(0).z());
+		chunk = f.getChunk(10,30);
+		list = chunk.locationsOf("oak_stairs");
+		assertEquals(10,list.size());
+		assertTrue(list.stream().anyMatch(l -> l.x() == 0 && l.y() == 124 && l.z() == 8));
 	}
 
 	private void assertLoadFLag(Object field, long flags, long wantedFlag) {

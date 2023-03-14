@@ -43,15 +43,12 @@ class BinaryMap {
     public long[] getData() {
         return this.data_;
     }
-
     public int getBitsPerEntry() {
         return this.bitsPerEntry_;
     }
-
     public int getSize() {
         return this.size_;
     }
-
     public int get(int index) {
         if(index < 0 || index > this.size_ - 1) {
             throw new IndexOutOfBoundsException();
@@ -59,8 +56,23 @@ class BinaryMap {
 
         int longIndex = index / this.entriesPerLong_;
         int entryIndex = index % this.entriesPerLong_;
-        int bitIndex = entryIndex * this.bitsPerEntry_;
-        return (int) (this.data_[longIndex] >>> bitIndex & this.maxEntryValue_);
+        return this.getFromLong(entryIndex, longIndex);
+    }
+    public int[] indexesOf(int val) {
+        int[] r = new int[this.size_];
+        int i = 0;
+        for (int l = 0; l < this.data_.length; l++) {
+            if (this.data_[l] < val) { continue; }
+            for (int e = 0; e < this.entriesPerLong_; e++) {
+                int v = this.getFromLong(e, l);
+                if (v == val) {
+                    r[i] = (this.entriesPerLong_ * l) + e;
+                    i++;
+                }
+            }
+        }
+        r = Arrays.copyOf(r,i);
+        return r;
     }
 
 
@@ -98,6 +110,10 @@ class BinaryMap {
 
 
     //PRIVATE UTIL
+    private int getFromLong(int entryIndex, int longIndex) {
+        int bitIndex = entryIndex * this.bitsPerEntry_;
+        return (int) (this.data_[longIndex] >>> bitIndex & this.maxEntryValue_);
+    }
     private static int roundToNearest(int value, int roundTo) {
         if(roundTo == 0) {
             return 0;

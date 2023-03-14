@@ -14,6 +14,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.*;
+import java.util.function.Predicate;
 
 import static com.jkantrell.mca.LoadFlags.*;
 
@@ -593,6 +594,21 @@ public class Chunk implements Iterable<Section> {
 		}
 		level.put("Sections", sections);
 		return data;
+	}
+
+	public List<LocatedTag<CompoundTag>> locationsOf(Predicate<CompoundTag> checker) {
+		return this.sections.values().stream()
+				.flatMap(s ->
+					s.getBlockLocations(checker).stream().map(l -> new LocatedTag<>(l.x(), l.y() * s.getHeight(), l.z(), l.tag()))
+				)
+				.toList();
+	}
+	public List<LocatedTag<CompoundTag>> locationsOf(String blockName) {
+		return this.sections.values().stream()
+				.flatMap(s ->
+						s.getBlockLocations(blockName).stream().map(l -> new LocatedTag<>(l.x(), l.y() + (s.getHeight() * 16), l.z(), l.tag()))
+				)
+				.toList();
 	}
 
 	@Override

@@ -5,13 +5,14 @@ import com.jkantrell.nbt.tag.StringTag;
 import com.jkantrell.nbt.tag.Tag;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 public class Section implements Comparable<Section> {
 
 	//FIELDS
 	private int height_;
-	private PaletteContainer<Tag<?>> blockPalette_;
-	private PaletteContainer<Tag<?>> biomePalette_;
+	private PaletteContainer<CompoundTag> blockPalette_;
+	private PaletteContainer<StringTag> biomePalette_;
 	private CompoundTag src_;
 
 
@@ -26,14 +27,13 @@ public class Section implements Comparable<Section> {
 		this.biomePalette_ = this.craftPaletteContainer(sectionRoot, "biomes", 64, 1);
 		this.src_ = sectionRoot;
 	}
-	Section() {}
 
 
 	//GETTERS
-	public PaletteContainer<Tag<?>> getBlockStatePalette() {
+	public PaletteContainer<CompoundTag> getBlockStatePalette() {
 		return blockPalette_;
 	}
-	public PaletteContainer<Tag<?>> getBiomePalette() {
+	public PaletteContainer<StringTag> getBiomePalette() {
 		return biomePalette_;
 	}
 	public CompoundTag getSource() {
@@ -65,26 +65,28 @@ public class Section implements Comparable<Section> {
 	}
 	public CompoundTag getBlockStateAt(int blockX, int blockY, int blockZ) {
 		int blockIndex = Section.getBlockIndexAt(blockX,blockY,blockZ);
-		return (CompoundTag) this.blockPalette_.get(blockIndex);
+		return this.blockPalette_.get(blockIndex);
 	}
 	public StringTag getBiomeAt(int blockX, int blockY, int blockZ) {
 		int biomeIndex = Section.getBiomeIndexAt(blockX, blockY, blockZ);
-		return (StringTag) this.biomePalette_.get(biomeIndex);
+		return this.biomePalette_.get(biomeIndex);
 	}
 	public void setBlockStateAt(int blockX, int blockY, int blockZ, CompoundTag state) {
 		this.blockPalette_.set(Section.getBlockIndexAt(blockX, blockY, blockZ), state);
 	}
+	public List<LocatedTag<CompoundTag>> getBlockLocations(Predicate<CompoundTag> checker) {
+		return this.blockPalette_.indexedEntriesOf(checker).entrySet().stream()
+				.map(e -> Section.locationFromIndex(16,16,e.getKey(),e.getValue()))
+				.toList();
+	}
+	public List<LocatedTag<CompoundTag>> getBlockLocations(String blockName) {
+		String name = (blockName.indexOf(':') < 0) ? "minecraft:" + blockName : blockName;
+		return this.getBlockLocations(t -> t.getString("Name").equals(name));
+	}
 
 
 	//PRIVATE UTIL
-	private static int getBlockIndexAt(int x, int y, int z) {
-		return y*256 + z*16 + x;
-	}
-	private static int getBiomeIndexAt(int x, int y, int z) {
-		x = x >> 2; y = y >> 2; z = z >> 2;
-		return y*16 + z*4 + x;
-	}
-	private PaletteContainer<Tag<?>> craftPaletteContainer(CompoundTag src, String name, int size, int minimumBitSize) {
+	private <T extends Tag<?>> PaletteContainer<T> craftPaletteContainer(CompoundTag src, String name, int size, int minimumBitSize) {
 		if (!src.containsKey(name)) { return null; }
 
 		CompoundTag root = src.getCompoundTag(name);
@@ -92,13 +94,29 @@ public class Section implements Comparable<Section> {
 			throw new IllegalArgumentException("'" + name + "' property of " + this.height_ + " section is missing a 'palette' tag.");
 		}
 
-		List<Tag<?>> palette = new LinkedList<>();
-		root.getListTag("palette").forEach(palette::add);
+		List<T> palette = new LinkedList<>();
+		root.getListTag("palette").forEach(t -> palette.add((T) t));
 
 		if (root.containsKey("data")) {
 			long[] data = root.getLongArrayTag("data").getValue();
 			return new PaletteContainer<>(palette, size, minimumBitSize, data);
 		}
 		return new PaletteContainer<>(palette.get(0), size, minimumBitSize);
+	}
+	private static int getBlockIndexAt(int x, int y, int z) {
+		return y*256 + z*16 + x;
+	}
+	private static int getBiomeIndexAt(int x, int y, int z) {
+		x = x >> 2; y = y >> 2; z = z >> 2;
+		return y*16 + z*4 + x;
+	}
+	private static <T extends Tag<?>> LocatedTag<T> locationFromIndex(int xDimension, int zDimension, int index, T tag) {
+		int yLayer = (xDimension * zDimension);
+		int y = index / yLayer;
+		index = index - (yLayer * y);
+		int z = index / zDimension;
+		index = index - (zDimension * z);
+		int x = index;
+		return new LocatedTag<>(x, y, z, tag);
 	}
 }

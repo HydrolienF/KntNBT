@@ -2,6 +2,8 @@ package com.jkantrell.mca;
 
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class PaletteContainer<T> implements List<T> {
@@ -10,6 +12,7 @@ public class PaletteContainer<T> implements List<T> {
     private static IllegalStateException cannotAddException() {
         return new IllegalStateException("Cannot add elements to a PaletteContainer.");
     }
+
     private static IllegalStateException cannotRemoveException() {
         return new IllegalStateException("Cannot remove elements to a PaletteContainer.");
     }
@@ -44,18 +47,23 @@ public class PaletteContainer<T> implements List<T> {
         int bitsPerEntry = this.minimumBitsFor(palette.size() - 1);
         this.binaryMap_ = new BinaryMap(bitsPerEntry, this.size_, data);
     }
+
     public PaletteContainer(List<T> palette, int size, long[] data) {
         this(palette, size, 1, data);
     }
+
     public PaletteContainer(List<T> palette, int size, int minimumBitSize) {
         this(palette, size, minimumBitSize, null);
     }
+
     public PaletteContainer(List<T> palette, int size) {
         this(palette, size, 1);
     }
+
     public PaletteContainer(T singleElement, int size, int minimumBitSize) {
         this(new ArrayList<>(List.of(singleElement)), size, minimumBitSize);
     }
+
     public PaletteContainer(T singleElement, int size) {
         this(singleElement, size, 1);
     }
@@ -65,8 +73,11 @@ public class PaletteContainer<T> implements List<T> {
     public List<T> getPalette() {
         return List.copyOf(this.palette_);
     }
+
     public long[] getByteMap() {
-        if (this.binaryMap_ == null) { return null; }
+        if (this.binaryMap_ == null) {
+            return null;
+        }
         return this.binaryMap_.getData();
     }
 
@@ -123,12 +134,16 @@ public class PaletteContainer<T> implements List<T> {
     @Override
     public boolean remove(Object o) {
         int index = this.indexOf(o);
-        if (index < 0) { return false; }
+        if (index < 0) {
+            return false;
+        }
         while (index < this.size_ - 1) {
             this.binaryMap_.set(index, this.binaryMap_.get(index + 1));
             index++;
         }
-        if (this.indexOf(o) < 0) { this.palette_.remove(o); }
+        if (this.indexOf(o) < 0) {
+            this.palette_.remove(o);
+        }
         this.size_--;
         this.calculateBinaryMap();
         return true;
@@ -202,10 +217,14 @@ public class PaletteContainer<T> implements List<T> {
 
     @Override
     public int indexOf(Object o) {
-        if (!this.palette_.contains(o)) { return -1; }
+        if (!this.palette_.contains(o)) {
+            return -1;
+        }
         int index = this.palette_.indexOf(o);
         for (int i = 0; i < this.size_; i++) {
-            if (this.binaryMap_.get(i) == index) { return i; }
+            if (this.binaryMap_.get(i) == index) {
+                return i;
+            }
         }
         return -1;
     }
@@ -228,6 +247,20 @@ public class PaletteContainer<T> implements List<T> {
     @Override
     public List<T> subList(int fromIndex, int toIndex) {
         return null;
+    }
+
+
+    //UTIL
+    public Map<Integer, T> indexedEntriesOf(T o) {
+        return this.indexedEntriesOf(this.palette_.indexOf(o));
+    }
+    public Map<Integer, T> indexedEntriesOf(Predicate<T> checker) {
+        return this.palette_.stream()
+                .filter(checker)
+                .map(this.palette_::indexOf)
+                .map(this::indexedEntriesOf)
+                .flatMap(m -> m.entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
 
@@ -258,6 +291,15 @@ public class PaletteContainer<T> implements List<T> {
     }
     private int minimumBitsFor(int integer) {
         return Math.max(Integer.SIZE - Integer.numberOfLeadingZeros(integer), this.minimumBitSize_);
+    }
+    private Map<Integer, T> indexedEntriesOf(int paletteIndex) {
+        if (paletteIndex < 0) { return new HashMap<>(); }
+        if (paletteIndex == 0 && this.palette_.size() < 2) {
+            T val = this.palette_.get(0);
+            return IntStream.range(0, this.size_ - 1).boxed().collect(Collectors.toMap(i -> i, i -> val));
+        }
+        int[] indexes = this.binaryMap_.indexesOf(paletteIndex);
+        return Arrays.stream(indexes).boxed().collect(Collectors.toMap(i -> i, i -> this.palette_.get(paletteIndex)));
     }
 
 
