@@ -260,6 +260,7 @@ public class PaletteContainer<T> implements List<T> {
                 .map(this.palette_::indexOf)
                 .map(this::indexedEntriesOf)
                 .flatMap(m -> m.entrySet().stream())
+                .distinct()
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
