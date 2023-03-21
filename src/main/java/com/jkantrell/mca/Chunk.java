@@ -24,11 +24,9 @@ public class Chunk implements Iterable<Section> {
 
 	private boolean partial;
 	private boolean raw;
-
+	private int xPos, zPos;
 	private int lastMCAUpdate;
-
 	private CompoundTag data;
-
 	private int dataVersion;
 	private long lastUpdate;
 	private long inhabitedTime;
@@ -68,6 +66,9 @@ public class Chunk implements Iterable<Section> {
 			raw = true;
 			return;
 		}
+
+		this.xPos = this.data.getInt("xPos");
+		this.zPos = this.data.getInt("zPos");
 
 		this.dataVersion = this.data.getInt("DataVersion");
 		this.inhabitedTime = this.data.getLong("InhabitedTime");
@@ -199,6 +200,13 @@ public class Chunk implements Iterable<Section> {
 
 	int getBiomeIndex(int biomeX, int biomeY, int biomeZ) {
 		return biomeY * 16 + biomeZ * 4 + biomeX;
+	}
+
+	public int getX() {
+		return this.xPos;
+	}
+	public int getZ() {
+		return this.zPos;
 	}
 
 	public CompoundTag getBlockStateAt(int blockX, int blockY, int blockZ) {
@@ -599,14 +607,14 @@ public class Chunk implements Iterable<Section> {
 	public List<LocatedTag<CompoundTag>> locationsOf(Predicate<CompoundTag> checker) {
 		return this.sections.values().stream()
 				.flatMap(s ->
-					s.getBlockLocations(checker).stream().map(l -> new LocatedTag<>(l.x(), l.y() * s.getHeight(), l.z(), l.tag()))
+					s.getBlockLocations(checker).stream().map(l -> new LocatedTag<>(l.x(), l.y() + (s.getHeight() * 16), l.z(), l.tag()))
 				)
 				.toList();
 	}
 	public List<LocatedTag<CompoundTag>> locationsOf(String blockName) {
 		return this.sections.values().stream()
 				.flatMap(s ->
-						s.getBlockLocations(blockName).stream().map(l -> new LocatedTag<>(l.x(), l.y() + (s.getHeight() * 16), l.z(), l.tag()))
+					s.getBlockLocations(blockName).stream().map(l -> new LocatedTag<>(l.x(), l.y() + (s.getHeight() * 16), l.z(), l.tag()))
 				)
 				.toList();
 	}
