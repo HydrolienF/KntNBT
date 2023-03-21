@@ -150,6 +150,16 @@ public class MCAFileTest extends MCATestCase {
 		assertTrue(list.stream().anyMatch(l -> l.x() == 0 && l.y() == 124 && l.z() == 8));
 	}
 
+	public void testPoss() {
+		MCAFile f = assertThrowsNoException(() -> MCAUtil.read(copyResourceToTmp("r.0.0.mca")));
+		int[][] poss = { {5, 3}, {6, 7}, {8, 15}, {11, 2}, {0, 25}};
+		for (int[] p : poss) {
+			Chunk chunk = f.getChunk(p[0], p[1]);
+			assertEquals(p[0], chunk.getX());
+			assertEquals(p[1], chunk.getZ());
+		}
+	}
+
 	private void assertLoadFLag(Object field, long flags, long wantedFlag) {
 		if((flags & wantedFlag) != 0) {
 			assertNotNull(String.format("Should not be null. Flags=%08x, Wanted flag=%08x", flags, wantedFlag), field);
