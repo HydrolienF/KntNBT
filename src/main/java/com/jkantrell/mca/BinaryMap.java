@@ -2,7 +2,7 @@ package com.jkantrell.mca;
 
 import java.util.Arrays;
 
-class BinaryMap {
+public class BinaryMap {
 
     //FIELDS
     private final long[] data_;

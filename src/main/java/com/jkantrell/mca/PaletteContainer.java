@@ -185,8 +185,7 @@ public class PaletteContainer<T> implements List<T> {
         if (this.binaryMap_ != null) {
             return this.palette_.get(this.binaryMap_.get(index));
         }
-        if (index < 0 || index > this.size_ - 1) {
-            throw new IndexOutOfBoundsException();
+        if (index < 0 || index > this.size_ - 1) { throw new IndexOutOfBoundsException("Index " + index + " not contained. (Size " + this.size_ + ")");
         }
         return this.palette_.get(0);
     }

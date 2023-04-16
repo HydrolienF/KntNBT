@@ -178,6 +178,9 @@ public class Chunk implements Iterable<Section> {
 	 */
 	public StringTag getBiomeAt(int blockX, int blockY, int blockZ) {
 		Section section = sections.get(MCAUtil.blockToChunk(blockY));
+		if (section == null) {
+			return null;
+		}
 		return section.getBiomeAt(blockX, Math.floorMod(blockY, 16), blockZ);
 	}
 
@@ -480,6 +483,9 @@ public class Chunk implements Iterable<Section> {
 
 	public List<Section> getSections() {
 		return this.sections.values().stream().sorted().toList();
+	}
+	public Map<Integer, Section> getSectionMap() {
+		return new HashMap<>(this.sections);
 	}
 
 	/**
