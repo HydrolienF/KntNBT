@@ -24,6 +24,9 @@ public class Section implements Comparable<Section> {
 		}
 		this.height_ = sectionRoot.getByte("Y");
 		this.blockPalette_ = this.craftPaletteContainer(sectionRoot, "block_states", 4096, 4);
+		if (this.blockPalette_ == null) {
+			this.blockPalette_ = new PaletteContainer<>(MCAUtil.airBlockTag(), 4096, 4);
+		}
 		this.biomePalette_ = this.craftPaletteContainer(sectionRoot, "biomes", 64, 1);
 		this.src_ = sectionRoot;
 	}
@@ -68,6 +71,7 @@ public class Section implements Comparable<Section> {
 		return this.blockPalette_.get(blockIndex);
 	}
 	public StringTag getBiomeAt(int blockX, int blockY, int blockZ) {
+		if (this.biomePalette_ == null) { return null; }
 		int biomeIndex = Section.getBiomeIndexAt(blockX, blockY, blockZ);
 		return this.biomePalette_.get(biomeIndex);
 	}

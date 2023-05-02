@@ -1,5 +1,7 @@
 package com.jkantrell.mca;
 
+import com.jkantrell.nbt.tag.CompoundTag;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -219,5 +221,11 @@ public final class MCAUtil {
 			return new MCAFile(Integer.parseInt(m.group("regionX")), Integer.parseInt(m.group("regionZ")));
 		}
 		throw new IllegalArgumentException("invalid mca file name: " + file.getName());
+	}
+
+	public static CompoundTag airBlockTag() {
+		CompoundTag tag = new CompoundTag(1);
+		tag.putString("Name", "minecraft:air");
+		return tag;
 	}
 }
