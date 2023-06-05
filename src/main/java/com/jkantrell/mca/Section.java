@@ -80,7 +80,7 @@ public class Section implements Comparable<Section> {
 	}
 	public List<LocatedTag<CompoundTag>> getBlockLocations(Predicate<CompoundTag> checker) {
 		return this.blockPalette_.indexedEntriesOf(checker).entrySet().stream()
-				.map(e -> Section.locationFromIndex(16,16,e.getKey(),e.getValue()))
+				.map(e -> Section.locationFromIndex(e.getKey(), e.getValue()))
 				.toList();
 	}
 	public List<LocatedTag<CompoundTag>> getBlockLocations(String blockName) {
@@ -114,13 +114,10 @@ public class Section implements Comparable<Section> {
 		x = x >> 2; y = y >> 2; z = z >> 2;
 		return y*16 + z*4 + x;
 	}
-	private static <T extends Tag<?>> LocatedTag<T> locationFromIndex(int xDimension, int zDimension, int index, T tag) {
-		int yLayer = (xDimension * zDimension);
-		int y = index / yLayer;
-		index = index - (yLayer * y);
-		int z = index / zDimension;
-		index = index - (zDimension * z);
-		int x = index;
+	private static <T extends Tag<?>> LocatedTag<T> locationFromIndex(int index, T tag) {
+		int y = index >> 8;
+		int z = (index >> 4) % 16;
+		int x = index % 16;
 		return new LocatedTag<>(x, y, z, tag);
 	}
 }

@@ -66,7 +66,9 @@ public class BinaryMap {
             for (int e = 0; e < this.entriesPerLong_; e++) {
                 int v = this.getFromLong(e, l);
                 if (v == val) {
-                    r[i] = (this.entriesPerLong_ * l) + e;
+                    int index = (this.entriesPerLong_ * l) + e;
+                    if (index >= this.size_) { break; }
+                    r[i] = index;
                     i++;
                 }
             }
